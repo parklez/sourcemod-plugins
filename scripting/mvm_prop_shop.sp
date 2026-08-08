@@ -4,8 +4,9 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION  "1.0.0"
+#define PLUGIN_VERSION  "1.0.1"
 
+#define CHAT_TAG        "\x01[\x04!props\x01]"
 #define COLOR_DEFAULT   "\x01"
 #define COLOR_HIGHLIGHT "\x03"
 #define COLOR_GREEN     "\x04"
@@ -47,7 +48,6 @@ public void OnPluginStart()
     AddCommandListener(Command_Say, "say_team");
 
     HookEvent("player_spawn", Event_PlayerSpawn);
-    HookEvent("player_death", Event_PlayerDeath);
 }
 
 public void OnMapStart()
@@ -124,19 +124,9 @@ public Action Event_PlayerSpawn(Event hEvent, const char[] sName, bool bDontBroa
         if (!g_bWelcomed[client])
         {
             g_bWelcomed[client] = true;
-            PrintToChat(client, "%s[!props]%s Type %s!props%s to open the MvM Prop Store or %s!refund%s to return your last prop!",
-                        COLOR_GREEN, COLOR_DEFAULT, COLOR_HIGHLIGHT, COLOR_DEFAULT, COLOR_HIGHLIGHT, COLOR_DEFAULT);
+            PrintToChat(client, "%s Type %s!props%s to open the MvM Prop Store or %s!refund%s to return your last prop!",
+                        CHAT_TAG, COLOR_HIGHLIGHT, COLOR_DEFAULT, COLOR_HIGHLIGHT, COLOR_DEFAULT);
         }
-    }
-    return Plugin_Continue;
-}
-
-public Action Event_PlayerDeath(Event hEvent, const char[] sName, bool bDontBroadcast)
-{
-    int client = GetClientOfUserId(hEvent.GetInt("userid"));
-    if (client > 0 && client <= MaxClients)
-    {
-        g_bWelcomed[client] = false;
     }
     return Plugin_Continue;
 }
@@ -166,13 +156,19 @@ public Action Command_Say(int client, const char[] command, int args)
 
 public Action Command_PropsMenu(int client, int args)
 {
-    if (IsValidClient(client)) OpenPropMenu(client);
+    if (IsValidClient(client))
+    {
+        OpenPropMenu(client);
+    }
     return Plugin_Handled;
 }
 
 public Action Command_Refund(int client, int args)
 {
-    if (IsValidClient(client)) ExecuteRefund(client);
+    if (IsValidClient(client))
+    {
+        ExecuteRefund(client);
+    }
     return Plugin_Handled;
 }
 
@@ -248,20 +244,20 @@ public int MenuHandler_Props(Menu menu, MenuAction action, int param1, int param
                     g_iLastSpawnedProp[client] = EntIndexToEntRef(iEnt);
                     g_iLastPropCost[client]    = item.cost;
 
-                    PrintToChat(client, "%s[!props]%s Purchased %s%s%s for %s$%d%s.",
-                                COLOR_GREEN, COLOR_DEFAULT, COLOR_HIGHLIGHT, item.name, COLOR_DEFAULT, COLOR_YELLOW, item.cost, COLOR_DEFAULT);
+                    PrintToChat(client, "%s Purchased %s%s%s for %s$%d%s.",
+                                CHAT_TAG, COLOR_HIGHLIGHT, item.name, COLOR_DEFAULT, COLOR_YELLOW, item.cost, COLOR_DEFAULT);
                 }
                 else
                 {
                     SetClientCash(client, iCash);
-                    PrintToChat(client, "%s[!props]%s Failed to spawn %s%s%s. Money refunded.",
-                                COLOR_GREEN, COLOR_DEFAULT, COLOR_HIGHLIGHT, item.name, COLOR_DEFAULT);
+                    PrintToChat(client, "%s Failed to spawn %s%s%s. Money refunded.",
+                                CHAT_TAG, COLOR_HIGHLIGHT, item.name, COLOR_DEFAULT);
                 }
             }
             else
             {
-                PrintToChat(client, "%s[!props]%s You do not have enough cash (%s$%d%s required).",
-                            COLOR_GREEN, COLOR_DEFAULT, COLOR_YELLOW, item.cost, COLOR_DEFAULT);
+                PrintToChat(client, "%s You do not have enough cash (%s$%d%s required).",
+                            CHAT_TAG, COLOR_YELLOW, item.cost, COLOR_DEFAULT);
             }
         }
 
@@ -283,7 +279,7 @@ void ExecuteRefund(int client)
 {
     if (g_iLastSpawnedProp[client] == -1)
     {
-        PrintToChat(client, "%s[!props]%s You have no recent prop purchases to refund.", COLOR_GREEN, COLOR_DEFAULT);
+        PrintToChat(client, "%s You have no recent prop purchases to refund.", CHAT_TAG);
         return;
     }
 
@@ -297,8 +293,8 @@ void ExecuteRefund(int client)
     int iRefundAmount = g_iLastPropCost[client];
     SetClientCash(client, GetClientCash(client) + iRefundAmount);
 
-    PrintToChat(client, "%s[!props]%s Refunded %s$%d%s for your last purchase.",
-                COLOR_GREEN, COLOR_DEFAULT, COLOR_YELLOW, iRefundAmount, COLOR_DEFAULT);
+    PrintToChat(client, "%s Refunded %s$%d%s for your last purchase.",
+                CHAT_TAG, COLOR_YELLOW, iRefundAmount, COLOR_DEFAULT);
 
     ResetClientHistory(client);
 }
@@ -326,7 +322,7 @@ int SpawnItemAtView(int client, const PropItem item)
     int iTeam   = GetClientTeam(client);
     if (iTeam <= 1) iTeam = 2;
     char team[2];
-    IntToString(iTeam, team, 2);
+    IntToString(iTeam, team, sizeof(team));
 
     int iEnt = -1;
 
