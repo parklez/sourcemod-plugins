@@ -1,0 +1,92 @@
+#include <sourcemod>
+#include <sdktools>
+#include <sdkhooks>
+#include <tf2_stocks>
+
+#pragma newdecls required
+
+ConVar g_cvPerkAmmoEnabled;
+ConVar g_cvPerkAmmoDuration;
+float g_flInfiniteAmmoEnd[MAXPLAYERS + 1];
+
+void Perk_Ammo_Init()
+{
+    g_cvPerkAmmoEnabled = CreateConVar("sm_mvm_gift_ammo_enabled", "1", "Enable Infinite Ammo perk?", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+    g_cvPerkAmmoDuration = CreateConVar("sm_mvm_gift_ammo_duration", "30.0", "Duration of the Infinite Ammo buff.", FCVAR_NOTIFY, true, 1.0);
+
+    // Apply PreThink hooks for players already on the server if the plugin is late-loaded
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i))
+        {
+            OnClientPutInServer(i);
+        }
+    }
+}
+
+void Perk_Ammo_Clear(int client)
+{
+    g_flInfiniteAmmoEnd[client] = 0.0;
+}
+
+void Perk_Ammo_Apply(int client, char[] buffName, int maxLenBuff, char[] expireMsg, int maxLenExpire, float &duration)
+{
+    duration = g_cvPerkAmmoDuration.FloatValue;
+    
+    // Set the expiration time to be evaluated inside OnPreThink
+    g_flInfiniteAmmoEnd[client] = GetGameTime() + duration; 
+    
+    Format(buffName, maxLenBuff, "Infinite Ammo for %.0f seconds", duration);
+    strcopy(expireMsg, maxLenExpire, "Infinite Ammo has worn off");
+}
+
+public void SDKHooks_OnPreThink(int client)
+{
+    // Evaluate if the client is alive and their buff is still active
+    if (IsPlayerAlive(client) && GetGameTime() <= g_flInfiniteAmmoEnd[client])
+    {
+        // Loop through Primary, Secondary, and Melee slots
+        for (int slot = 0; slot <= 2; slot++)
+        {
+            int weapon = GetPlayerWeaponSlot(client, slot);
+            if (weapon != -1)
+            {
+                GiveInfiniteAmmo(client, weapon);
+            }
+        }
+    }
+}
+
+void GiveInfiniteAmmo(int client, int weapon)
+{
+    if (!IsValidEntity(weapon))
+    {
+        return;
+    }
+    
+    // 1. Reserve Ammo Logic (Fixes Snipers and Miniguns)
+    // Uses Prop_Send for m_iPrimaryAmmoType and Prop_Data for m_iAmmo as done in the reference plugin
+    int iAmmoType = GetEntProp(weapon, Prop_Send, "m_iPrimaryAmmoType");
+    if (iAmmoType != -1)
+    {
+        SetEntProp(client, Prop_Data, "m_iAmmo", 666, _, iAmmoType);
+    }
+    
+    // 2. Clip Logic
+    // Uses Prop_Data for m_iClip1 as done in the reference plugin
+    if (HasEntProp(weapon, Prop_Data, "m_iClip1"))
+    {
+        // Only attempt to set the clip if the weapon actually uses clips (not -1)
+        if (GetEntProp(weapon, Prop_Data, "m_iClip1") != -1)
+        {
+            SetEntProp(weapon, Prop_Data, "m_iClip1", 99);
+        }
+    }
+    
+    // 3. Energy Weapon Logic (Cow Mangler, Righteous Bison, Pomson)
+    // Uses Prop_Send for m_flEnergy as done in the reference plugin
+    if (HasEntProp(weapon, Prop_Send, "m_flEnergy"))
+    {
+        SetEntPropFloat(weapon, Prop_Send, "m_flEnergy", 100.0);
+    }
+}
