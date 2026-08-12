@@ -45,6 +45,7 @@ Machines may drop a floating xmas gift when killed. Gifts contain random perks.
  - Ubercharge / Invincibility (for 30 seconds)
 
 #### Installing
+- Install [tf2attributes](https://github.com/LauTrin/TF2Attributes).
 - Copy [mvm_gift_drops.smx](./compiled/mvm_gift_drops.smx) to `sourcemod/plugins`
 - A config will be generated in `/tf/cfg/sourcemod/mvm_gift_drops.cfg` - Server owners can configure what perks are active, fow how long, gift drop rate, etc. Restart to apply changes.
 
