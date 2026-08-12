@@ -8,7 +8,7 @@
 #define PLUGIN_VERSION "1.0.0"
 
 // Hex colors for TF2 chat formatting
-#define COLOR_TAG      "\x04"       // Light Green
+#define CHAT_TAG       "\x01[\x04MvM\x01]"
 #define COLOR_TEXT     "\x01"       // Normal White/Yellowish
 #define COLOR_MAP      "\x0799CCFF" // Soft Cyan/Blue
 #define COLOR_DIFF     "\x07FFD700" // Gold/Yellow
@@ -45,8 +45,8 @@ public void Event_MvMBeginWave(Event event, const char[] name, bool dontBroadcas
     GetMvMWaveInfo(iCurrentWave, iMaxWaves);
 
     // Print formatted colored message with wave info
-    PrintToChatAll("%s[MvM]%s Map: \"%s%s%s\" - Difficulty: \"%s%s%s\" - Wave: %s%d/%d%s", 
-        COLOR_TAG, COLOR_TEXT, 
+    PrintToChatAll("%s Map: \"%s%s%s\" - Difficulty: \"%s%s%s\" - Wave: %s%d/%d%s", 
+        CHAT_TAG, 
         COLOR_MAP, sMapName, COLOR_TEXT, 
         COLOR_DIFF, sDifficulty, COLOR_TEXT,
         COLOR_WAVE, iCurrentWave, iMaxWaves, COLOR_TEXT);
