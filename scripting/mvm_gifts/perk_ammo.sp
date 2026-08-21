@@ -15,6 +15,12 @@ ConVar g_cvPerkAmmoDuration;
 ConVar g_cvPerkAmmoFireRateMult;
 float  g_flInfiniteAmmoEnd[MAXPLAYERS + 1];
 
+#define MAX_ENTITIES 2048
+
+float g_flWeaponBaseFireRate[MAX_ENTITIES];
+float g_flWeaponBaseReloadSpeed[MAX_ENTITIES];
+int   g_iWeaponBoostRef[MAX_ENTITIES];
+
 void   Perk_Ammo_Init()
 {
     g_cvPerkAmmoEnabled      = CreateConVar("sm_mvm_gift_ammo_enabled", "1", "Enable Infinite Ammo perk?", FCVAR_NOTIFY, true, 0.0, true, 1.0);
@@ -74,15 +80,25 @@ void Perk_Ammo_ApplyFireRate(int client)
     float mult = g_cvPerkAmmoFireRateMult.FloatValue;
     if (mult <= 0.0) return;
 
-    float attribVal = 1.0 / mult;
-
     for (int i = 0; i <= 2; i++)
     {
         int weapon = GetPlayerWeaponSlot(client, i);
-        if (weapon > MaxClients && IsValidEntity(weapon))
+        if (weapon > MaxClients && weapon < MAX_ENTITIES && IsValidEntity(weapon))
         {
-            TF2Attrib_SetByDefIndex(weapon, ATTRIB_FIRE_RATE, attribVal);
-            TF2Attrib_SetByDefIndex(weapon, ATTRIB_RELOAD_SPEED, attribVal);
+            int ref = EntIndexToEntRef(weapon);
+            if (g_iWeaponBoostRef[weapon] != ref)
+            {
+                Address pAttrFire = TF2Attrib_GetByDefIndex(weapon, ATTRIB_FIRE_RATE);
+                g_flWeaponBaseFireRate[weapon] = (pAttrFire != Address_Null) ? TF2Attrib_GetValue(pAttrFire) : 1.0;
+                
+                Address pAttrReload = TF2Attrib_GetByDefIndex(weapon, ATTRIB_RELOAD_SPEED);
+                g_flWeaponBaseReloadSpeed[weapon] = (pAttrReload != Address_Null) ? TF2Attrib_GetValue(pAttrReload) : 1.0;
+                
+                g_iWeaponBoostRef[weapon] = ref;
+            }
+            
+            TF2Attrib_SetByDefIndex(weapon, ATTRIB_FIRE_RATE, g_flWeaponBaseFireRate[weapon] / mult);
+            TF2Attrib_SetByDefIndex(weapon, ATTRIB_RELOAD_SPEED, g_flWeaponBaseReloadSpeed[weapon] / mult);
         }
     }
 }
@@ -94,10 +110,23 @@ void Perk_Ammo_RemoveFireRate(int client)
         for (int i = 0; i <= 2; i++)
         {
             int weapon = GetPlayerWeaponSlot(client, i);
-            if (weapon > MaxClients && IsValidEntity(weapon))
+            if (weapon > MaxClients && weapon < MAX_ENTITIES && IsValidEntity(weapon))
             {
-                TF2Attrib_RemoveByDefIndex(weapon, ATTRIB_FIRE_RATE);
-                TF2Attrib_RemoveByDefIndex(weapon, ATTRIB_RELOAD_SPEED);
+                int ref = EntIndexToEntRef(weapon);
+                if (g_iWeaponBoostRef[weapon] == ref)
+                {
+                    if (g_flWeaponBaseFireRate[weapon] == 1.0)
+                        TF2Attrib_RemoveByDefIndex(weapon, ATTRIB_FIRE_RATE);
+                    else
+                        TF2Attrib_SetByDefIndex(weapon, ATTRIB_FIRE_RATE, g_flWeaponBaseFireRate[weapon]);
+
+                    if (g_flWeaponBaseReloadSpeed[weapon] == 1.0)
+                        TF2Attrib_RemoveByDefIndex(weapon, ATTRIB_RELOAD_SPEED);
+                    else
+                        TF2Attrib_SetByDefIndex(weapon, ATTRIB_RELOAD_SPEED, g_flWeaponBaseReloadSpeed[weapon]);
+
+                    g_iWeaponBoostRef[weapon] = 0;
+                }
             }
         }
     }
