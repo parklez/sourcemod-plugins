@@ -5,6 +5,7 @@ A collection of sourcemod plugins I've edited or made from scratch
  * [[TF2 MvM] Wave Start Announcer](#tf2-mvm-wave-start-announcer)
  * [[TF2 MvM] Shop for spawning props](#tf2-mvm-shop-for-spawning-props-and-entities)
  * [[TF2 MvM] Gift Drops](#tf2-mvm-gift-drops)
+ * [[TF2 MvM] Auto Cash Pickup](#tf2-mvm-auto-cash-pickup)
 
 ### [TF2 MvM] Wave Start Announcer
 A simple announcer on wave start, printing out the following string in chat:
@@ -50,3 +51,15 @@ Machines may drop a floating xmas gift when killed. Gifts contain random perks.
 - A config will be generated in `/tf/cfg/sourcemod/mvm_gift_drops.cfg` - Server owners can configure what perks are active, fow how long, gift drop rate, etc. Restart to apply changes.
 
 Source code: [mvm_gift_drops.sp](./scripting/mvm_gift_drops.sp) & everything inside `/scripting/mvm_gifts/*.sp`
+
+### [TF2 MvM] Auto Cash Pickup
+Teleports dropped cash from robots to Red Team's big pockets. Will attempt to do so even after respawning.
+
+#### How to use
+
+- **In console:** `sm_mvm_cash_pickup_enable 1` to enable, ` 0` to disable.
+
+#### Installing
+- Copy [mvm_cash_pickup.smx](./compiled/mvm_cash_pickup.smx) to `sourcemod/plugins`
+
+Source code: [mvm_cash_pickup.sp](./scripting/mvm_cash_pickup.sp)
