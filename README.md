@@ -20,19 +20,19 @@ Source code: [mvm_wave_start_announcer.sp](./scripting/mvm_wave_start_announcer.
 ### [TF2 MvM] Shop for spawning props and entities
 A shop for players with deep pockets who want to spawn some stuff. Allows for refunding the last spawned item so no hard feelings.
 
-![Prop store in-game](docs/prop_store.png)
+![Props shop in-game](docs/props_shop.png)
 
 The config file defines available props and entities, their price and health (before they break).
 
 #### How to use
-**In chat:** !props & !refund \
+**In chat:** !props, !prop, !shop, !buy, !store & !refund \
 **In console:** `sm_props` & `sm_refund`
 
 #### Installing
-- Copy [prop_shop.cfg](./configs/prop_store.cfg) to `sourcemod/configs`
-- Copy [mvm_prop_shop.smx](./compiled/mvm_prop_shop.smx) to `sourcemod/plugins`
+- Copy [mvm_props_shop.cfg](./configs/mvm_props_shop.cfg) to `sourcemod/configs`
+- Copy [mvm_props_shop.smx](./compiled/mvm_props_shop.smx) to `sourcemod/plugins`
 
-Source code: [mvm_prop_shop.sp](./scripting/mvm_prop_shop.sp)
+Source code: [mvm_props_shop.sp](./scripting/mvm_props_shop.sp)
 
 ### [TF2 MvM] Gift Drops
 Machines may drop a floating xmas gift when killed. Gifts contain random perks.

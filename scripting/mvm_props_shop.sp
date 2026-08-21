@@ -4,7 +4,7 @@
 #pragma newdecls required
 #pragma semicolon 1
 
-#define PLUGIN_VERSION  "1.0.1"
+#define PLUGIN_VERSION  "1.1.0"
 
 #define CHAT_TAG        "\x01[\x04!props\x01]"
 #define COLOR_DEFAULT   "\x01"
@@ -14,9 +14,9 @@
 
 public Plugin myinfo =
 {
-    name        = "[TF2 MvM] Cash Prop Store",
+    name        = "[TF2 MvM] Props Shop",
     author      = "parklez",
-    description = "Allows players to purchase props, explosives, and buildings using MvM cash.",
+    description = "Allows players to purchase props, explosives and buildings using MvM cash.",
     version     = PLUGIN_VERSION,
     url         = "https://github.com/parklez/sourcemod-plugins"
 };
@@ -41,7 +41,11 @@ public void OnPluginStart()
 {
     g_hPropList = new ArrayList(sizeof(PropItem));
 
-    RegConsoleCmd("sm_props", Command_PropsMenu, "Opens the MvM Prop Store Menu.");
+    RegConsoleCmd("sm_props", Command_PropsMenu, "Opens the MvM Props Shop Menu.");
+    RegConsoleCmd("sm_prop", Command_PropsMenu, "Opens the MvM Props Shop Menu.");
+    RegConsoleCmd("sm_shop", Command_PropsMenu, "Opens the MvM Props Shop Menu.");
+    RegConsoleCmd("sm_buy", Command_PropsMenu, "Opens the MvM Props Shop Menu.");
+    RegConsoleCmd("sm_store", Command_PropsMenu, "Opens the MvM Props Shop Menu.");
     RegConsoleCmd("sm_refund", Command_Refund, "Refunds the last purchased prop.");
 
     AddCommandListener(Command_Say, "say");
@@ -64,9 +68,9 @@ void LoadConfig()
     g_hPropList.Clear();
 
     char sPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, sPath, sizeof(sPath), "configs/prop_store.cfg");
+    BuildPath(Path_SM, sPath, sizeof(sPath), "configs/mvm_props_shop.cfg");
 
-    KeyValues hKV = new KeyValues("PropStore");
+    KeyValues hKV = new KeyValues("PropShop");
     if (!hKV.ImportFromFile(sPath))
     {
         delete hKV;
@@ -124,7 +128,7 @@ public Action Event_PlayerSpawn(Event hEvent, const char[] sName, bool bDontBroa
         if (!g_bWelcomed[client])
         {
             g_bWelcomed[client] = true;
-            PrintToChat(client, "%s Type %s!props%s to open the MvM Prop Store or %s!refund%s to return your last prop!",
+            PrintToChat(client, "%s Type %s!props%s to open the MvM Props Shop or %s!refund%s to return your last prop!",
                         CHAT_TAG, COLOR_HIGHLIGHT, COLOR_DEFAULT, COLOR_HIGHLIGHT, COLOR_DEFAULT);
         }
     }
@@ -139,7 +143,7 @@ public Action Command_Say(int client, const char[] command, int args)
     char sArg[32];
     GetCmdArg(1, sArg, sizeof(sArg));
 
-    if (StrEqual(sArg, "!props", false) || StrEqual(sArg, "/props", false))
+    if (StrEqual(sArg, "!props", false) || StrEqual(sArg, "/props", false) || StrEqual(sArg, "!prop", false) || StrEqual(sArg, "/prop", false) || StrEqual(sArg, "!shop", false) || StrEqual(sArg, "/shop", false) || StrEqual(sArg, "!buy", false) || StrEqual(sArg, "/buy", false) || StrEqual(sArg, "!store", false) || StrEqual(sArg, "/store", false))
     {
         OpenPropMenu(client);
         return Plugin_Handled;
@@ -182,7 +186,7 @@ void OpenPropMenu(int client, int iStartItem = 0)
         return;
 
     Menu hMenu = new Menu(MenuHandler_Props);
-    hMenu.SetTitle("MvM Prop Store | Cash: $%d", GetClientCash(client));
+    hMenu.SetTitle("Props Shop - Your Cash: $%d", GetClientCash(client));
 
     int iCash  = GetClientCash(client);
     int iCount = g_hPropList.Length;
@@ -319,20 +323,20 @@ int SpawnItemAtView(int client, const PropItem item)
     spawnPos[1] = fHitPos[1];
     spawnPos[2] = fHitPos[2];
 
-    int iTeam   = GetClientTeam(client);
-    if (iTeam <= 1) iTeam = 2;
-    char team[2];
-    IntToString(iTeam, team, sizeof(team));
-
-    int iEnt = -1;
+    int iEnt    = -1;
 
     if (StrEqual(item.type, "sentry", false))
     {
-        iEnt = SpawnEngineerBuilding("obj_sentrygun", team, item.health, spawnPos, fAngles);
+        iEnt = SpawnEngineerBuilding(client, "obj_sentrygun", item.health, spawnPos, fAngles);
     }
     else if (StrEqual(item.type, "dispenser", false))
     {
-        iEnt = SpawnEngineerBuilding("obj_dispenser", team, item.health, spawnPos, fAngles);
+        iEnt = SpawnEngineerBuilding(client, "obj_dispenser", item.health, spawnPos, fAngles);
+    }
+    else if (StrEqual(item.type, "teleporter_entrance", false) || StrEqual(item.type, "teleporter_exit", false))
+    {
+        int mode = StrEqual(item.type, "teleporter_entrance", false) ? 1 : 0;
+        iEnt     = SpawnTeleporter(client, item.health, spawnPos, fAngles, mode);
     }
     else
     {
@@ -346,11 +350,14 @@ int SpawnItemAtView(int client, const PropItem item)
     return iEnt;
 }
 
-int SpawnEngineerBuilding(const char[] className, const char[] team, int health, const float position[3], const float angle[3])
+int SpawnEngineerBuilding(int builder, const char[] className, int health, const float position[3], const float angle[3])
 {
     int building = CreateEntityByName(className);
     if (!IsValidEntity(building))
         return -1;
+
+    char team[2];
+    IntToString(GetSafeClientTeam(builder), team, sizeof(team));
 
     DispatchKeyValueVector(building, "origin", position);
     DispatchKeyValueVector(building, "angles", angle);
@@ -361,6 +368,53 @@ int SpawnEngineerBuilding(const char[] className, const char[] team, int health,
     DispatchSpawn(building);
     ActivateEntity(building);
 
+    ApplyHealthToBuilding(building, health);
+    return building;
+}
+
+int SpawnTeleporter(int builder, int health, const float position[3], const float angle[3], int mode)
+{
+    int teleporter = CreateEntityByName("obj_teleporter");
+    if (!IsValidEntity(teleporter))
+        return -1;
+
+    char team[2];
+    IntToString(GetSafeClientTeam(builder), team, sizeof(team));
+
+    DispatchKeyValueVector(teleporter, "origin", position);
+    DispatchKeyValueVector(teleporter, "angles", angle);
+    DispatchKeyValue(teleporter, "teamnum", team);
+    DispatchKeyValue(teleporter, "defaultupgrade", "2");
+
+    char sType[2];
+    IntToString(mode == 0 ? 1 : 2, sType, sizeof(sType));
+    DispatchKeyValue(teleporter, "teleporterType", sType);
+
+    int level = 3;
+    int skin  = GetSafeClientTeam(builder) - 2;
+    if (skin < 0) skin = 0;
+
+    SetEntProp(teleporter, Prop_Send, "m_iHighestUpgradeLevel", level);
+    SetEntProp(teleporter, Prop_Data, "m_spawnflags", 4);
+    SetEntProp(teleporter, Prop_Send, "m_bBuilding", 1);
+    SetEntProp(teleporter, Prop_Data, "m_iTeleportType", mode);
+    SetEntProp(teleporter, Prop_Send, "m_iObjectMode", mode);
+    SetEntProp(teleporter, Prop_Send, "m_nSkin", skin);
+
+    DispatchSpawn(teleporter);
+    ActivateEntity(teleporter);
+
+    AcceptEntityInput(teleporter, "SetBuilder", builder);
+
+    SetVariantInt(GetSafeClientTeam(builder));
+    AcceptEntityInput(teleporter, "SetTeam");
+
+    ApplyHealthToBuilding(teleporter, health);
+    return teleporter;
+}
+
+void ApplyHealthToBuilding(int building, int health)
+{
     if (health > 0)
     {
         DataPack pack = new DataPack();
@@ -368,8 +422,6 @@ int SpawnEngineerBuilding(const char[] className, const char[] team, int health,
         pack.WriteCell(health);
         CreateTimer(0.1, Timer_SetHealthOnMaxLevel, pack, TIMER_REPEAT);
     }
-
-    return building;
 }
 
 public Action Timer_SetHealthOnMaxLevel(Handle timer, DataPack pack)
@@ -501,4 +553,10 @@ bool IsValidClient(int client)
 bool FilterPlayer(int entity, int contentsMask)
 {
     return (entity > MaxClients);
+}
+
+int GetSafeClientTeam(int client)
+{
+    int team = GetClientTeam(client);
+    return (team <= 1) ? 2 : team;
 }
