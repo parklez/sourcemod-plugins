@@ -9,9 +9,9 @@ A collection of sourcemod plugins I've edited or made from scratch
 
 ### [TF2 MvM] Wave Start Announcer
 A simple announcer on wave start, printing out the following string in chat:
-```
-[MvM] Map: "mvm_mannworks" - Difficulty: "normal" - Wave: 1/6"
-```
+
+![Wave Announcement](docs/wave_announcement.webp)
+
 #### Installing
 - Copy [mvm_wave_start_announcer.smx](./compiled/mvm_wave_start_announcer.smx) to `sourcemod/plugins`
 
@@ -36,6 +36,8 @@ Source code: [mvm_props_shop.sp](./scripting/mvm_props_shop.sp)
 
 ### [TF2 MvM] Gift Drops
 Machines may drop a floating xmas gift when killed. Gifts contain random perks.
+
+![Dropped Gift](docs/dropped_gift.webp)
 
 #### List of perks available:
  - Infinite ammo & Increased fire-rate (for 30 seconds)
