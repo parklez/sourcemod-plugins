@@ -38,12 +38,12 @@ Source code: [mvm_props_shop.sp](./scripting/mvm_props_shop.sp)
 Machines may drop a floating xmas gift when killed. Gifts contain random perks.
 
 #### List of perks available:
- - Infinite ammo (for 30 seconds)
+ - Infinite ammo & Increased fire-rate (for 30 seconds)
  - Extra Money ($1000)
  - Crit boosted (for 60 seconds)
  - Instakill (for 15 seconds)
  - Speed & Healing (for 60 seconds)
- - Ubercharge / Invincibility (for 30 seconds)
+ - Ubercharged (for 30 seconds)
 
 #### Installing
 - Install [tf2attributes](https://github.com/LauTrin/TF2Attributes).

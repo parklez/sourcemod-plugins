@@ -53,8 +53,8 @@ void Perk_Ammo_Apply(int client, char[] buffName, int maxLenBuff, char[] expireM
 
     Perk_Ammo_ApplyFireRate(client);
 
-    Format(buffName, maxLenBuff, "Infinite Ammo for %.0f seconds", duration);
-    strcopy(expireMsg, maxLenExpire, "Infinite Ammo has worn off");
+    Format(buffName, maxLenBuff, "Infinite Ammo & Increased Fire-Rate for %.0f seconds", duration);
+    strcopy(expireMsg, maxLenExpire, "Infinite Ammo & Increased Fire-Rate");
 }
 
 public void SDKHooks_OnPreThink(int client)

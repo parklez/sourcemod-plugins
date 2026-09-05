@@ -6,7 +6,7 @@
 #include <sdkhooks>
 #include <tf2_stocks>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.1"
 #define MODEL_GIFT     "models/items/tf_gift.mdl"
 #define SOUND_PICKUP   "items/gunpickup2.wav"
 
@@ -433,7 +433,7 @@ public Action Timer_BuffExpire(Handle timer, DataPack pack)
 
         if (IsPlayerAlive(client) && expireMsg[0] != '\0')
         {
-            PrintToChat(client, "%s %sYour %s%s%s.",
+            PrintToChat(client, "%s %sYour %s%s%s has worn off.",
                         CHAT_TAG, COLOR_TEXT, COLOR_VALUE, expireMsg, COLOR_TEXT);
         }
     }

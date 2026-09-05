@@ -24,5 +24,5 @@ void Perk_Speed_Apply(int client, char[] buffName, int maxLenBuff, char[] expire
     TF2_AddCondition(client, TFCond_HalloweenQuickHeal, duration);
 
     Format(buffName, maxLenBuff, "Super Speed & Regen for %.0f seconds", duration);
-    strcopy(expireMsg, maxLenExpire, "Super Speed & Regen has worn off");
+    strcopy(expireMsg, maxLenExpire, "Super Speed & Regen");
 }

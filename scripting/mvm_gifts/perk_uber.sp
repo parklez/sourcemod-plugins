@@ -21,5 +21,5 @@ void Perk_Uber_Apply(int client, char[] buffName, int maxLenBuff, char[] expireM
     duration           = baseDuration + flRemaining;
     TF2_AddCondition(client, TFCond_Ubercharged, duration);
     Format(buffName, maxLenBuff, "Ubercharge for %.0f seconds", duration);
-    strcopy(expireMsg, maxLenExpire, "Ubercharge has worn off");
+    strcopy(expireMsg, maxLenExpire, "Ubercharge");
 }

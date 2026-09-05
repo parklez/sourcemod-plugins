@@ -29,5 +29,5 @@ void Perk_InstaKill_Apply(int client, char[] buffName, int maxLenBuff, char[] ex
     duration                 = baseDuration + flRemaining;
     g_flInstaKillEnd[client] = GetGameTime() + duration;
     Format(buffName, maxLenBuff, "Insta-Kill for %.0f seconds", duration);
-    strcopy(expireMsg, maxLenExpire, "Insta-Kill has worn off");
+    strcopy(expireMsg, maxLenExpire, "Insta-Kill");
 }

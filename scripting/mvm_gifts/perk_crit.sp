@@ -20,6 +20,6 @@ void Perk_Crit_Apply(int client, char[] buffName, int maxLenBuff, char[] expireM
     float baseDuration = g_cvPerkCritDuration.FloatValue;
     duration           = baseDuration + flRemaining;
     TF2_AddCondition(client, TFCond_Kritzkrieged, duration);
-    Format(buffName, maxLenBuff, "Critically Boosted for %.0f seconds", duration);
-    strcopy(expireMsg, maxLenExpire, "Crit Boost has worn off");
+    Format(buffName, maxLenBuff, "Critical Boost for %.0f seconds", duration);
+    strcopy(expireMsg, maxLenExpire, "Critical Boost");
 }
