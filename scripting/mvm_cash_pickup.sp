@@ -6,7 +6,7 @@
 #include <tf2>
 #include <tf2_stocks>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.1"
 
 ConVar g_cvEnable;
 
@@ -52,15 +52,27 @@ bool TryTeleportMoney(int entity)
     if (entity == INVALID_ENT_REFERENCE || !IsValidEntity(entity))
         return true;
 
-    for (int i = 1; i <= MaxClients; i++)
+    static int s_iCurrentPlayer = 0;
+    int        targetPlayer     = -1;
+
+    for (int i = 0; i < MaxClients; i++)
     {
-        if (IsClientInGame(i) && !IsFakeClient(i) && IsPlayerAlive(i) && view_as<TFTeam>(GetClientTeam(i)) == TFTeam_Red)
+        s_iCurrentPlayer = (s_iCurrentPlayer % MaxClients) + 1;
+
+        if (IsClientInGame(s_iCurrentPlayer) && !IsFakeClient(s_iCurrentPlayer) && IsPlayerAlive(s_iCurrentPlayer) && view_as<TFTeam>(GetClientTeam(s_iCurrentPlayer)) == TFTeam_Red)
         {
-            float origin[3];
-            GetClientAbsOrigin(i, origin);
-            TeleportEntity(entity, origin, NULL_VECTOR, NULL_VECTOR);
-            return true;
+            targetPlayer = s_iCurrentPlayer;
+            break;
         }
     }
+
+    if (targetPlayer != -1)
+    {
+        float origin[3];
+        GetClientAbsOrigin(targetPlayer, origin);
+        origin[2] += 10.0;
+        TeleportEntity(entity, origin, NULL_VECTOR, NULL_VECTOR);
+    }
+
     return false;
 }
